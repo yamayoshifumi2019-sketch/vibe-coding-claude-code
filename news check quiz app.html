@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily News Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Start Screen */
+        #start-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        #start-screen .intro {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        #start-screen .intro h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        #start-screen .intro p {
+            color: #b0b0b0;
+            margin-bottom: 10px;
+        }
+
+        .stats-box {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #808080;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            border: none;
+            padding: 16px 48px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Quiz Screen */
+        #quiz-screen {
+            padding: 20px 0;
+        }
+
+        .progress-container {
+            margin-bottom: 30px;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .question-type {
+            display: inline-block;
+            background: rgba(123, 47, 247, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            color: #c4a0ff;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .question-source {
+            font-size: 0.85rem;
+            color: #808080;
+            margin-bottom: 5px;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .answer-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 20px;
+            font-size: 1rem;
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .answer-btn.correct {
+            background: rgba(46, 213, 115, 0.2);
+            border-color: #2ed573;
+        }
+
+        .answer-btn.incorrect {
+            background: rgba(255, 71, 87, 0.2);
+            border-color: #ff4757;
+        }
+
+        .answer-btn:disabled {
+            cursor: default;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: rgba(46, 213, 115, 0.15);
+            border-left: 4px solid #2ed573;
+        }
+
+        .feedback.incorrect {
+            background: rgba(255, 71, 87, 0.15);
+            border-left: 4px solid #ff4757;
+        }
+
+        .feedback-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .next-btn {
+            display: none;
+            width: 100%;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .next-btn.show {
+            display: block;
+        }
+
+        /* Results Screen */
+        #results-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .results-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 40px 30px;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(123, 47, 247, 0.2));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 3px solid;
+        }
+
+        .score-circle.excellent {
+            border-color: #2ed573;
+        }
+
+        .score-circle.good {
+            border-color: #00d4ff;
+        }
+
+        .score-circle.average {
+            border-color: #ffa502;
+        }
+
+        .score-circle.poor {
+            border-color: #ff4757;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .score-label {
+            font-size: 1rem;
+            color: #a0a0a0;
+        }
+
+        .score-message {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .news-summary {
+            text-align: left;
+            margin-top: 30px;
+        }
+
+        .news-summary h3 {
+            margin-bottom: 15px;
+            color: #00d4ff;
+        }
+
+        .news-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 3px solid #7b2ff7;
+        }
+
+        .news-item-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .news-item-source {
+            font-size: 0.85rem;
+            color: #808080;
+        }
+
+        .news-item a {
+            color: #00d4ff;
+            text-decoration: none;
+        }
+
+        .news-item a:hover {
+            text-decoration: underline;
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error */
+        .error {
+            background: rgba(255, 71, 87, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .error h3 {
+            color: #ff4757;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .question-text {
+                font-size: 1.1rem;
+            }
+
+            .stats-box {
+                gap: 20px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Daily News Quiz</h1>
+            <p>Stay informed in 2 minutes</p>
+        </header>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <div class="intro">
+                <h2>Test Your News Knowledge</h2>
+                <p>10 questions about today's top stories from around the world.</p>
+                <p>Sources: BBC, Reuters, NPR, and more.</p>
+            </div>
+            <div class="stats-box">
+                <div class="stat">
+                    <div class="stat-value" id="streak-count">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="best-score">-</div>
+                    <div class="stat-label">Best Score</div>
+                </div>
+            </div>
+            <button class="btn" id="start-btn">Start Quiz</button>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Fetching today's news...</p>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-text">
+                    <span id="question-counter">Question 1 of 10</span>
+                    <span id="score-display">Score: 0</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="question-card">
+                <span class="question-type" id="question-type">Multiple Choice</span>
+                <p class="question-source" id="question-source"></p>
+                <h2 class="question-text" id="question-text"></h2>
+            </div>
+
+            <div class="answers" id="answers"></div>
+
+            <div class="feedback" id="feedback">
+                <p class="feedback-title" id="feedback-title"></p>
+                <p id="feedback-text"></p>
+            </div>
+
+            <button class="btn next-btn" id="next-btn">Next Question</button>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen">
+            <div class="results-card">
+                <div class="score-circle" id="score-circle">
+                    <span class="score-number" id="final-score">0</span>
+                    <span class="score-label">out of 10</span>
+                </div>
+                <h2 class="score-message" id="score-message">Good job!</h2>
+                <p id="score-description"></p>
+            </div>
+
+            <div class="news-summary">
+                <h3>Today's Headlines</h3>
+                <div id="news-list"></div>
+            </div>
+
+            <div class="results-actions">
+                <button class="btn" id="retry-btn">Try Again</button>
+            </div>
+        </div>
+
+        <!-- Error Screen -->
+        <div id="error-screen" class="screen">
+            <div class="error">
+                <h3>Oops! Something went wrong</h3>
+                <p id="error-message">Unable to fetch news. Please check your internet connection and try again.</p>
+                <button class="btn" style="margin-top: 20px" id="retry-fetch-btn">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // RSS Feed URLs (via rss2json.com)
+        const RSS_FEEDS = [
+            { name: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
+            { name: 'Reuters', url: 'https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best' },
+            { name: 'NPR', url: 'https://feeds.npr.org/1001/rss.xml' },
+            { name: 'Al Jazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml' }
+        ];
+
+        const RSS2JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+        // State
+        let newsItems = [];
+        let questions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        // DOM Elements
+        const screens = {
+            start: document.getElementById('start-screen'),
+            loading: document.getElementById('loading-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            results: document.getElementById('results-screen'),
+            error: document.getElementById('error-screen')
+        };
+
+        // Show a specific screen
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[screenName].classList.add('active');
+        }
+
+        // Fetch news from RSS feeds
+        async function fetchNews() {
+            const allItems = [];
+
+            const fetchPromises = RSS_FEEDS.map(async (feed) => {
+                try {
+                    const response = await fetch(RSS2JSON_API + encodeURIComponent(feed.url));
+                    const data = await response.json();
+
+                    if (data.status === 'ok' && data.items) {
+                        return data.items.slice(0, 5).map(item => ({
+                            title: cleanText(item.title),
+                            description: cleanText(item.description || item.content || ''),
+                            link: item.link,
+                            source: feed.name,
+                            pubDate: item.pubDate
+                        }));
+                    }
+                    return [];
+                } catch (error) {
+                    console.error(`Error fetching ${feed.name}:`, error);
+                    return [];
+                }
+            });
+
+            const results = await Promise.all(fetchPromises);
+            results.forEach(items => allItems.push(...items));
+
+            // Filter out items with very short titles
+            return allItems.filter(item => item.title.length > 20);
+        }
+
+        // Clean HTML and special characters from text
+        function cleanText(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.innerHTML = text;
+            return div.textContent.trim().replace(/\s+/g, ' ');
+        }
+
+        // Shuffle array
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Extract key entities from text (countries, people, organizations)
+        function extractEntities(text) {
+            const countries = [
+                'US', 'USA', 'United States', 'UK', 'Britain', 'China', 'Russia', 'Ukraine',
+                'Israel', 'Gaza', 'Palestine', 'Iran', 'Syria', 'France', 'Germany', 'Japan',
+                'India', 'Pakistan', 'North Korea', 'South Korea', 'Taiwan', 'Australia',
+                'Canada', 'Mexico', 'Brazil', 'Argentina', 'Turkey', 'Egypt', 'Saudi Arabia',
+                'Iraq', 'Afghanistan', 'Lebanon', 'Yemen', 'Sudan', 'Ethiopia', 'Nigeria',
+                'South Africa', 'Kenya', 'Poland', 'Italy', 'Spain', 'Netherlands', 'Belgium'
+            ];
+
+            const found = [];
+            for (const country of countries) {
+                if (text.includes(country)) {
+                    found.push(country);
+                }
+            }
+            return found;
+        }
+
+        // Extract topic/category from news
+        function extractTopic(text) {
+            const topicKeywords = {
+                'Politics': ['election', 'vote', 'president', 'minister', 'parliament', 'congress', 'senate', 'government', 'political', 'democracy', 'campaign'],
+                'Conflict': ['war', 'attack', 'military', 'troops', 'strike', 'conflict', 'fighting', 'bomb', 'missile', 'killed', 'casualties', 'ceasefire'],
+                'Economy': ['economy', 'economic', 'inflation', 'trade', 'market', 'stocks', 'GDP', 'recession', 'unemployment', 'prices', 'dollar', 'tariff'],
+                'Climate': ['climate', 'weather', 'storm', 'hurricane', 'flood', 'drought', 'temperature', 'emissions', 'carbon', 'renewable', 'wildfire'],
+                'Health': ['health', 'covid', 'vaccine', 'hospital', 'disease', 'outbreak', 'WHO', 'pandemic', 'medical', 'doctors'],
+                'Technology': ['tech', 'AI', 'artificial intelligence', 'robot', 'cyber', 'digital', 'software', 'data', 'internet', 'app'],
+                'Diplomacy': ['summit', 'talks', 'treaty', 'ambassador', 'diplomatic', 'negotiations', 'sanctions', 'alliance', 'UN', 'NATO']
+            };
+
+            const lowerText = text.toLowerCase();
+            for (const [topic, keywords] of Object.entries(topicKeywords)) {
+                for (const keyword of keywords) {
+                    if (lowerText.includes(keyword.toLowerCase())) {
+                        return topic;
+                    }
+                }
+            }
+            return 'World News';
+        }
+
+        // Generate quiz questions from news items
+        function generateQuestions(items) {
+            const shuffledItems = shuffleArray(items);
+            const questionsArr = [];
+            const usedItems = new Set();
+
+            const availableItems = shuffledItems.slice(0, Math.min(25, shuffledItems.length));
+
+            // Question generators focused on content
+            const questionTypes = [
+                generateWhatHappenedQuestion,
+                generateWhereQuestion,
+                generateTrueFalseContentQuestion,
+                generateTopicQuestion
+            ];
+
+            let typeIndex = 0;
+            let itemIndex = 0;
+
+            while (questionsArr.length < 10 && itemIndex < availableItems.length) {
+                const item = availableItems[itemIndex];
+
+                if (!usedItems.has(item.title)) {
+                    const generator = questionTypes[typeIndex % questionTypes.length];
+                    const question = generator(item, availableItems);
+
+                    if (question) {
+                        questionsArr.push(question);
+                        usedItems.add(item.title);
+                        typeIndex++;
+                    }
+                }
+                itemIndex++;
+            }
+
+            return questionsArr;
+        }
+
+        // Generate "What happened?" question
+        function generateWhatHappenedQuestion(item, allItems) {
+            const description = item.description || item.title;
+            if (description.length < 30) return null;
+
+            // Create a summary of what happened
+            const summary = truncateText(description, 150);
+
+            // Get other descriptions as wrong answers
+            const otherItems = shuffleArray(allItems.filter(i => i.title !== item.title));
+            const wrongAnswers = otherItems
+                .slice(0, 3)
+                .map(i => truncateText(i.description || i.title, 150))
+                .filter(desc => desc.length > 20);
+
+            if (wrongAnswers.length < 3) return null;
+
+            return {
+                type: 'Current Events',
+                text: `According to ${item.source}, what is happening in the news today?`,
+                source: item.source,
+                newsItem: item,
+                correctAnswer: summary,
+                options: shuffleArray([summary, ...wrongAnswers.slice(0, 3)]),
+                explanation: `Full story: ${item.title}`
+            };
+        }
+
+        // Generate "Where?" question about location
+        function generateWhereQuestion(item, allItems) {
+            const text = item.title + ' ' + (item.description || '');
+            const countries = extractEntities(text);
+
+            if (countries.length === 0) return null;
+
+            const correctCountry = countries[0];
+
+            // Get wrong country options
+            const allCountries = ['United States', 'China', 'Russia', 'UK', 'France', 'Germany',
+                                  'Japan', 'India', 'Brazil', 'Australia', 'Canada', 'Israel',
+                                  'Iran', 'Turkey', 'Saudi Arabia', 'South Korea'];
+            const wrongCountries = shuffleArray(
+                allCountries.filter(c => !countries.includes(c))
+            ).slice(0, 3);
+
+            return {
+                type: 'Location',
+                text: `Which country or region is this news story about?\n\n"${truncateText(item.title, 120)}"`,
+                source: item.source,
+                newsItem: item,
+                correctAnswer: correctCountry,
+                options: shuffleArray([correctCountry, ...wrongCountries]),
+                explanation: `This story from ${item.source} is about events in ${correctCountry}.`
+            };
+        }
+
+        // Generate True/False about content
+        function generateTrueFalseContentQuestion(item, allItems) {
+            const topic = extractTopic(item.title + ' ' + (item.description || ''));
+            const countries = extractEntities(item.title);
+
+            const isTrue = Math.random() > 0.5;
+            let statement, correctAnswer, explanation;
+
+            if (isTrue) {
+                // True statement based on actual news
+                if (countries.length > 0) {
+                    statement = `There was recent news about ${countries[0]} related to ${topic.toLowerCase()}.`;
+                } else {
+                    statement = `Recent news covered a story about ${topic.toLowerCase()}.`;
+                }
+                correctAnswer = 'True';
+                explanation = `Yes! The story was: "${truncateText(item.title, 100)}"`;
+            } else {
+                // False statement - swap country or topic
+                const fakeCountries = ['Antarctica', 'Greenland', 'Monaco', 'Liechtenstein'];
+                const fakeCountry = fakeCountries[Math.floor(Math.random() * fakeCountries.length)];
+                statement = `There was major breaking news today about ${fakeCountry} related to ${topic.toLowerCase()}.`;
+                correctAnswer = 'False';
+                explanation = `The actual story was about: "${truncateText(item.title, 100)}"`;
+            }
+
+            return {
+                type: 'True or False',
+                text: statement,
+                source: item.source,
+                newsItem: item,
+                correctAnswer: correctAnswer,
+                options: ['True', 'False'],
+                explanation: explanation
+            };
+        }
+
+        // Generate topic/category question
+        function generateTopicQuestion(item, allItems) {
+            const correctTopic = extractTopic(item.title + ' ' + (item.description || ''));
+
+            const allTopics = ['Politics', 'Conflict', 'Economy', 'Climate', 'Health', 'Technology', 'Diplomacy', 'World News'];
+            const wrongTopics = shuffleArray(
+                allTopics.filter(t => t !== correctTopic)
+            ).slice(0, 3);
+
+            return {
+                type: 'Category',
+                text: `What type of news story is this?\n\n"${truncateText(item.title, 120)}"`,
+                source: item.source,
+                newsItem: item,
+                correctAnswer: correctTopic,
+                options: shuffleArray([correctTopic, ...wrongTopics]),
+                explanation: `This is a ${correctTopic} story from ${item.source}.`
+            };
+        }
+
+        // Helper: Truncate text
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.slice(0, maxLength - 3) + '...';
+        }
+
+        // Display current question
+        function displayQuestion() {
+            const q = questions[currentQuestion];
+
+            document.getElementById('question-counter').textContent =
+                `Question ${currentQuestion + 1} of ${questions.length}`;
+            document.getElementById('score-display').textContent = `Score: ${score}`;
+            document.getElementById('progress-fill').style.width =
+                `${((currentQuestion) / questions.length) * 100}%`;
+
+            document.getElementById('question-type').textContent = q.type;
+            document.getElementById('question-source').textContent = `Source: ${q.source}`;
+            document.getElementById('question-text').textContent = q.text;
+
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = '';
+
+            q.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = option;
+                btn.addEventListener('click', () => checkAnswer(option, btn));
+                answersDiv.appendChild(btn);
+            });
+
+            // Reset UI
+            document.getElementById('feedback').classList.remove('show', 'correct', 'incorrect');
+            document.getElementById('next-btn').classList.remove('show');
+            answered = false;
+        }
+
+        // Check answer
+        function checkAnswer(selectedAnswer, selectedBtn) {
+            if (answered) return;
+            answered = true;
+
+            const q = questions[currentQuestion];
+            const isCorrect = selectedAnswer === q.correctAnswer;
+
+            // Disable all buttons and show correct/incorrect
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === q.correctAnswer) {
+                    btn.classList.add('correct');
+                } else if (btn === selectedBtn && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            // Show feedback
+            const feedback = document.getElementById('feedback');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+
+            if (isCorrect) {
+                score++;
+                document.getElementById('score-display').textContent = `Score: ${score}`;
+                feedback.classList.add('correct');
+                feedbackTitle.textContent = 'Correct!';
+                feedbackText.textContent = q.explanation || `The answer was: ${q.correctAnswer}`;
+            } else {
+                feedback.classList.add('incorrect');
+                feedbackTitle.textContent = 'Not quite!';
+                feedbackText.textContent = `The correct answer was: ${q.correctAnswer}`;
+            }
+
+            feedback.classList.add('show');
+            document.getElementById('next-btn').classList.add('show');
+            document.getElementById('next-btn').textContent =
+                currentQuestion === questions.length - 1 ? 'See Results' : 'Next Question';
+        }
+
+        // Show results
+        function showResults() {
+            showScreen('results');
+
+            const scoreCircle = document.getElementById('score-circle');
+            const finalScore = document.getElementById('final-score');
+            const scoreMessage = document.getElementById('score-message');
+            const scoreDescription = document.getElementById('score-description');
+
+            finalScore.textContent = score;
+
+            // Remove old classes
+            scoreCircle.classList.remove('excellent', 'good', 'average', 'poor');
+
+            // Set message based on score
+            if (score >= 9) {
+                scoreCircle.classList.add('excellent');
+                scoreMessage.textContent = 'Excellent!';
+                scoreDescription.textContent = "You're incredibly well-informed!";
+            } else if (score >= 7) {
+                scoreCircle.classList.add('good');
+                scoreMessage.textContent = 'Great job!';
+                scoreDescription.textContent = "You're keeping up with the news well.";
+            } else if (score >= 5) {
+                scoreCircle.classList.add('average');
+                scoreMessage.textContent = 'Good effort!';
+                scoreDescription.textContent = 'Keep following the news to improve.';
+            } else {
+                scoreCircle.classList.add('poor');
+                scoreMessage.textContent = 'Keep learning!';
+                scoreDescription.textContent = 'Check out the headlines below to catch up.';
+            }
+
+            // Display news summary
+            const newsList = document.getElementById('news-list');
+            newsList.innerHTML = '';
+
+            const uniqueItems = [];
+            const seenTitles = new Set();
+
+            questions.forEach(q => {
+                if (!seenTitles.has(q.newsItem.title)) {
+                    seenTitles.add(q.newsItem.title);
+                    uniqueItems.push(q.newsItem);
+                }
+            });
+
+            uniqueItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'news-item';
+                div.innerHTML = `
+                    <p class="news-item-title">${item.title}</p>
+                    <p class="news-item-source">
+                        ${item.source}
+                        ${item.link ? `• <a href="${item.link}" target="_blank" rel="noopener">Read more</a>` : ''}
+                    </p>
+                `;
+                newsList.appendChild(div);
+            });
+
+            // Update stats
+            updateStats();
+        }
+
+        // Update local storage stats
+        function updateStats() {
+            const today = new Date().toDateString();
+            let stats = JSON.parse(localStorage.getItem('newsQuizStats') || '{}');
+
+            // Update best score
+            if (!stats.bestScore || score > stats.bestScore) {
+                stats.bestScore = score;
+            }
+
+            // Update streak
+            if (stats.lastPlayDate === today) {
+                // Already played today, don't update streak
+            } else {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+
+                if (stats.lastPlayDate === yesterday.toDateString()) {
+                    stats.streak = (stats.streak || 0) + 1;
+                } else if (stats.lastPlayDate !== today) {
+                    stats.streak = 1;
+                }
+                stats.lastPlayDate = today;
+            }
+
+            localStorage.setItem('newsQuizStats', JSON.stringify(stats));
+            displayStats();
+        }
+
+        // Display stats on start screen
+        function displayStats() {
+            const stats = JSON.parse(localStorage.getItem('newsQuizStats') || '{}');
+            document.getElementById('streak-count').textContent = stats.streak || 0;
+            document.getElementById('best-score').textContent =
+                stats.bestScore !== undefined ? stats.bestScore + '/10' : '-';
+        }
+
+        // Initialize quiz
+        async function initQuiz() {
+            showScreen('loading');
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+
+            try {
+                newsItems = await fetchNews();
+
+                if (newsItems.length < 10) {
+                    throw new Error('Not enough news items available');
+                }
+
+                questions = generateQuestions(newsItems);
+
+                if (questions.length < 10) {
+                    throw new Error('Could not generate enough questions');
+                }
+
+                showScreen('quiz');
+                displayQuestion();
+            } catch (error) {
+                console.error('Error initializing quiz:', error);
+                document.getElementById('error-message').textContent =
+                    'Unable to fetch enough news stories. Please try again later.';
+                showScreen('error');
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('start-btn').addEventListener('click', initQuiz);
+        document.getElementById('retry-btn').addEventListener('click', initQuiz);
+        document.getElementById('retry-fetch-btn').addEventListener('click', initQuiz);
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentQuestion++;
+            if (currentQuestion >= questions.length) {
+                showResults();
+            } else {
+                displayQuestion();
+            }
+        });
+
+        // Initialize
+        displayStats();
+    </script>
+</body>
+</html>
