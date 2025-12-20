@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Calendar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 40px;
+            background: #4a90a4;
+            color: white;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .calendar-header h2 {
+            font-weight: 500;
+            font-size: 36px;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .stats {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .stat-value .star {
+            color: #ffc107;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #f8f8f8;
+            border-bottom: 1px solid #eee;
+        }
+
+        .weekday {
+            padding: 20px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .days {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+        }
+
+        .day {
+            padding: 16px;
+            border: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .day:hover {
+            background: #f0f7ff;
+        }
+
+        .day.empty {
+            background: #fafafa;
+            cursor: default;
+        }
+
+        .day.empty:hover {
+            background: #fafafa;
+        }
+
+        .day.today {
+            background: #e8f4fd;
+            border-color: #4a90a4;
+            border-width: 2px;
+        }
+
+        .day-number {
+            font-size: 28px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .day.today .day-number {
+            color: #4a90a4;
+            font-weight: 700;
+        }
+
+        .stars {
+            font-size: 24px;
+            color: #ffc107;
+            letter-spacing: 3px;
+        }
+
+        /* Rating Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 40px 50px;
+            border-radius: 16px;
+            text-align: center;
+            min-width: 420px;
+        }
+
+        .modal h3 {
+            margin-bottom: 28px;
+            color: #333;
+            font-weight: 500;
+            font-size: 26px;
+        }
+
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 52px;
+            cursor: pointer;
+            color: #ddd;
+            transition: color 0.2s, transform 0.1s;
+        }
+
+        .star-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .star-btn.active {
+            color: #ffc107;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background: #4a90a4;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #eee;
+            color: #666;
+        }
+
+        .btn-clear {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        /* User Menu */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .user-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            min-width: 220px;
+            margin-top: 8px;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .user-dropdown.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            color: #333;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        .dropdown-item.active {
+            background: #e8f4fd;
+            color: #4a90a4;
+            font-weight: 500;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: #eee;
+            margin: 4px 0;
+        }
+
+        .dropdown-header {
+            padding: 10px 20px 6px;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Group Stats Bar */
+        .group-stats-bar {
+            display: none;
+            background: #3d7a8c;
+            padding: 12px 40px;
+            color: white;
+        }
+
+        .group-stats-bar.active {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .group-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .group-name {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .member-selector {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .group-stats {
+            display: flex;
+            gap: 24px;
+        }
+
+        .group-stat {
+            text-align: center;
+        }
+
+        .group-stat-label {
+            font-size: 11px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .group-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Modal Styles for new modals */
+        .modal input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .modal input[type="text"]:focus {
+            outline: none;
+            border-color: #4a90a4;
+        }
+
+        .modal p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .invite-code-display {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .invite-code {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #4a90a4;
+            font-family: monospace;
+        }
+
+        .copy-btn {
+            background: #4a90a4;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        .copy-btn:hover {
+            background: #3d7a8c;
+        }
+
+        .member-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .member-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .member-badge {
+            font-size: 12px;
+            background: #4a90a4;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+            font-size: 14px;
+            padding: 6px 12px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .connection-status.offline {
+            display: block;
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .connection-status.connecting {
+            display: block;
+            background: #ffc107;
+            color: #333;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            font-size: 24px;
+            color: #4a90a4;
+        }
+
+        /* Error message */
+        .error-message {
+            background: #fff0f0;
+            color: #cc0000;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <div class="header-left">
+                <button class="nav-btn" id="prevMonth">&lt;</button>
+                <h2 id="monthYear"></h2>
+                <button class="nav-btn" id="nextMonth">&gt;</button>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-label">Total Stars</div>
+                    <div class="stat-value" id="totalStars">0 <span class="star">★</span></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Average Rating</div>
+                    <div class="stat-value" id="avgRating">0.0 <span class="star">★</span></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Days Rated</div>
+                    <div class="stat-value" id="daysRated">0 / 0</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-menu">
+                    <button class="user-btn" id="userMenuBtn">
+                        <span id="userDisplayName">Loading...</span> ▼
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-item active" data-action="personal">My Calendar</div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-header">Groups</div>
+                        <div id="groupsList"></div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" data-action="create-group">+ Create Group</div>
+                        <div class="dropdown-item" data-action="join-group">+ Join Group</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="group-stats-bar" id="groupStatsBar">
+            <div class="group-info">
+                <span class="group-name" id="currentGroupName">Family</span>
+                <select class="member-selector" id="memberSelector">
+                    <option value="all">All Members</option>
+                </select>
+                <button class="btn btn-small btn-secondary" id="groupSettingsBtn">Settings</button>
+            </div>
+            <div class="group-stats">
+                <div class="group-stat">
+                    <div class="group-stat-label">Group Total</div>
+                    <div class="group-stat-value" id="groupTotalStars">0 ★</div>
+                </div>
+                <div class="group-stat">
+                    <div class="group-stat-label">Group Avg</div>
+                    <div class="group-stat-value" id="groupAvgRating">0.0 ★</div>
+                </div>
+                <div class="group-stat">
+                    <div class="group-stat-label">Members</div>
+                    <div class="group-stat-value" id="groupMemberCount">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="weekdays">
+            <div class="weekday">Sunday</div>
+            <div class="weekday">Monday</div>
+            <div class="weekday">Tuesday</div>
+            <div class="weekday">Wednesday</div>
+            <div class="weekday">Thursday</div>
+            <div class="weekday">Friday</div>
+            <div class="weekday">Saturday</div>
+        </div>
+        <div class="days" id="daysContainer"></div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3 id="modalDate"></h3>
+            <div class="star-rating" id="starRating">
+                <button class="star-btn" data-rating="1">★</button>
+                <button class="star-btn" data-rating="2">★</button>
+                <button class="star-btn" data-rating="3">★</button>
+                <button class="star-btn" data-rating="4">★</button>
+                <button class="star-btn" data-rating="5">★</button>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-clear" id="clearBtn">Clear</button>
+                <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Display Name Modal -->
+    <div class="modal-overlay" id="nameModalOverlay">
+        <div class="modal">
+            <h3>Welcome to Star Calendar</h3>
+            <p>What should we call you?</p>
+            <input type="text" id="displayNameInput" placeholder="Enter your name" maxlength="20">
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="saveNameBtn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div class="modal-overlay" id="createGroupModalOverlay">
+        <div class="modal">
+            <h3>Create New Group</h3>
+            <p>Give your group a name</p>
+            <div class="error-message" id="createGroupError"></div>
+            <input type="text" id="groupNameInput" placeholder="e.g., Family Calendar" maxlength="30">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelCreateGroupBtn">Cancel</button>
+                <button class="btn btn-primary" id="createGroupBtn">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Created Modal -->
+    <div class="modal-overlay" id="groupCreatedModalOverlay">
+        <div class="modal">
+            <h3>Group Created!</h3>
+            <p>Share this code with others to invite them:</p>
+            <div class="invite-code-display">
+                <div class="invite-code" id="newInviteCode">ABC123</div>
+                <button class="copy-btn" id="copyNewCodeBtn">Copy Code</button>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="doneCreateBtn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Group Modal -->
+    <div class="modal-overlay" id="joinGroupModalOverlay">
+        <div class="modal">
+            <h3>Join a Group</h3>
+            <p>Enter the invite code shared with you</p>
+            <div class="error-message" id="joinGroupError"></div>
+            <input type="text" id="inviteCodeInput" placeholder="Enter invite code" maxlength="6" style="text-transform: uppercase;">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelJoinGroupBtn">Cancel</button>
+                <button class="btn btn-primary" id="joinGroupBtn">Join</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Settings Modal -->
+    <div class="modal-overlay" id="groupSettingsModalOverlay">
+        <div class="modal">
+            <h3 id="settingsGroupName">Group Settings</h3>
+            <div class="invite-code-display">
+                <p style="margin-bottom: 8px; font-size: 14px;">Invite Code:</p>
+                <div class="invite-code" id="settingsInviteCode">ABC123</div>
+                <button class="copy-btn" id="copySettingsCodeBtn">Copy Code</button>
+            </div>
+            <div class="member-list" id="settingsMemberList">
+                <!-- Members will be populated here -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="leaveGroupBtn">Leave Group</button>
+                <button class="btn btn-secondary" id="closeSettingsBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">Loading...</div>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">Offline - Changes will sync when connected</div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        // TODO: Replace with your Firebase project config
+        // Get this from Firebase Console > Project Settings > Your apps > Web app
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        let db, auth;
+        let firebaseInitialized = false;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            auth = firebase.auth();
+            firebaseInitialized = true;
+        } catch (e) {
+            console.warn('Firebase not configured. Running in local-only mode.');
+        }
+
+        // ============================================
+        // STATE VARIABLES
+        // ============================================
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+
+        let currentDate = new Date();
+        let currentYear = currentDate.getFullYear();
+        let currentMonth = currentDate.getMonth();
+        let selectedDate = null;
+        let selectedRating = 0;
+
+        // User and group state
+        let currentUser = null;
+        let userProfile = null;
+        let userGroups = [];
+        let ratingsCache = {};
+        let cacheKey = null;
+
+        // View mode state
+        let viewMode = 'personal'; // 'personal' or 'group'
+        let currentGroupId = null;
+        let currentGroup = null;
+        let viewingUserId = null;
+
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const daysContainer = document.getElementById('daysContainer');
+        const monthYearEl = document.getElementById('monthYear');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalDate = document.getElementById('modalDate');
+        const starButtons = document.querySelectorAll('.star-btn');
+        const totalStarsEl = document.getElementById('totalStars');
+        const avgRatingEl = document.getElementById('avgRating');
+        const daysRatedEl = document.getElementById('daysRated');
+        const userDisplayNameEl = document.getElementById('userDisplayName');
+        const userDropdown = document.getElementById('userDropdown');
+        const groupStatsBar = document.getElementById('groupStatsBar');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const connectionStatus = document.getElementById('connectionStatus');
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function showLoading() {
+            loadingOverlay.classList.add('active');
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.remove('active');
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.add('active');
+        }
+
+        function hideError(elementId) {
+            const el = document.getElementById(elementId);
+            el.classList.remove('active');
+        }
+
+        function generateInviteCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+        async function initAuth() {
+            if (!firebaseInitialized) {
+                userDisplayNameEl.textContent = 'Local Mode';
+                hideLoading();
+                renderCalendar();
+                return;
+            }
+
+            showLoading();
+
+            return new Promise((resolve) => {
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        await loadUserProfile();
+                        await migrateLocalStorageToFirebase();
+                        await loadUserGroups();
+                        hideLoading();
+                        renderCalendar();
+                        resolve(user);
+                    } else {
+                        try {
+                            const result = await auth.signInAnonymously();
+                            currentUser = result.user;
+                            await loadUserProfile();
+                            await loadUserGroups();
+                            hideLoading();
+                            renderCalendar();
+                            resolve(result.user);
+                        } catch (e) {
+                            console.error('Auth error:', e);
+                            userDisplayNameEl.textContent = 'Local Mode';
+                            hideLoading();
+                            renderCalendar();
+                            resolve(null);
+                        }
+                    }
+                });
+            });
+        }
+
+        // Monitor connection status
+        function initConnectionMonitor() {
+            if (!firebaseInitialized) return;
+
+            db.ref('.info/connected').on('value', (snap) => {
+                if (snap.val() === true) {
+                    connectionStatus.className = 'connection-status';
+                } else {
+                    connectionStatus.className = 'connection-status offline';
+                }
+            });
+        }
+
+        // ============================================
+        // USER PROFILE
+        // ============================================
+        async function loadUserProfile() {
+            if (!currentUser) return;
+
+            const snapshot = await db.ref(`users/${currentUser.uid}`).once('value');
+            userProfile = snapshot.val();
+
+            if (!userProfile || !userProfile.displayName) {
+                showNameModal();
+            } else {
+                userDisplayNameEl.textContent = userProfile.displayName;
+            }
+        }
+
+        async function saveDisplayName(name) {
+            if (!currentUser) return;
+
+            await db.ref(`users/${currentUser.uid}`).update({
+                displayName: name,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
+            userProfile = { displayName: name };
+            userDisplayNameEl.textContent = name;
+        }
+
+        function showNameModal() {
+            document.getElementById('nameModalOverlay').classList.add('active');
+            document.getElementById('displayNameInput').focus();
+        }
+
+        function hideNameModal() {
+            document.getElementById('nameModalOverlay').classList.remove('active');
+        }
+
+        // ============================================
+        // DATA STORAGE (HYBRID: FIREBASE + LOCALSTORAGE)
+        // ============================================
+        function getStorageKey(year, month, day) {
+            return `calendar-${year}-${month + 1}-${day}`;
+        }
+
+        async function migrateLocalStorageToFirebase() {
+            if (!currentUser) return;
+
+            const keys = Object.keys(localStorage).filter(k => k.startsWith('calendar-'));
+            if (keys.length === 0) return;
+
+            // Check if user already has Firebase data
+            const existingData = await db.ref(`ratings/${currentUser.uid}`).once('value');
+            if (existingData.exists()) return; // Already migrated
+
+            const updates = {};
+            for (const key of keys) {
+                const match = key.match(/calendar-(\d+)-(\d+)-(\d+)/);
+                if (match) {
+                    const [, year, month, day] = match;
+                    const yearMonth = `${year}-${month}`;
+                    updates[`ratings/${currentUser.uid}/${yearMonth}/${day}`] =
+                        parseInt(localStorage.getItem(key));
+                }
+            }
+
+            if (Object.keys(updates).length > 0) {
+                await db.ref().update(updates);
+            }
+        }
+
+        async function loadMonthRatings(userId, year, month) {
+            const yearMonth = `${year}-${month + 1}`;
+            const key = `${userId}-${yearMonth}`;
+
+            if (cacheKey === key) return ratingsCache;
+
+            if (!firebaseInitialized || !userId) {
+                // Load from localStorage
+                ratingsCache = {};
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const storageKey = getStorageKey(year, month, day);
+                    const rating = parseInt(localStorage.getItem(storageKey)) || 0;
+                    if (rating > 0) {
+                        ratingsCache[day] = rating;
+                    }
+                }
+            } else {
+                const snapshot = await db.ref(`ratings/${userId}/${yearMonth}`).once('value');
+                ratingsCache = snapshot.val() || {};
+            }
+
+            cacheKey = key;
+            return ratingsCache;
+        }
+
+        function getRating(year, month, day) {
+            return ratingsCache[day] || 0;
+        }
+
+        async function saveRating(year, month, day, rating) {
+            // Always save to localStorage as backup
+            const key = getStorageKey(year, month, day);
+            if (rating > 0) {
+                localStorage.setItem(key, rating);
+            } else {
+                localStorage.removeItem(key);
+            }
+
+            // Save to Firebase if available
+            if (firebaseInitialized && currentUser) {
+                const yearMonth = `${year}-${month + 1}`;
+                const path = `ratings/${currentUser.uid}/${yearMonth}/${day}`;
+
+                if (rating > 0) {
+                    await db.ref(path).set(rating);
+                    ratingsCache[day] = rating;
+                } else {
+                    await db.ref(path).remove();
+                    delete ratingsCache[day];
+                }
+            } else {
+                if (rating > 0) {
+                    ratingsCache[day] = rating;
+                } else {
+                    delete ratingsCache[day];
+                }
+            }
+        }
+
+        // ============================================
+        // GROUP MANAGEMENT
+        // ============================================
+        async function loadUserGroups() {
+            if (!currentUser) return;
+
+            const snapshot = await db.ref(`users/${currentUser.uid}/groups`).once('value');
+            const groupIds = snapshot.val() || {};
+
+            userGroups = [];
+            for (const groupId of Object.keys(groupIds)) {
+                const groupSnapshot = await db.ref(`groups/${groupId}`).once('value');
+                if (groupSnapshot.exists()) {
+                    userGroups.push({ id: groupId, ...groupSnapshot.val() });
+                }
+            }
+
+            updateGroupsList();
+        }
+
+        function updateGroupsList() {
+            const groupsList = document.getElementById('groupsList');
+            groupsList.innerHTML = '';
+
+            if (userGroups.length === 0) {
+                groupsList.innerHTML = '<div class="dropdown-item" style="color: #888; cursor: default;">No groups yet</div>';
+                return;
+            }
+
+            userGroups.forEach(group => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (currentGroupId === group.id ? ' active' : '');
+                item.textContent = group.name;
+                item.dataset.groupId = group.id;
+                item.addEventListener('click', () => switchToGroup(group.id));
+                groupsList.appendChild(item);
+            });
+        }
+
+        async function createGroup(groupName) {
+            if (!currentUser || !userProfile) return null;
+
+            const groupRef = db.ref('groups').push();
+            const groupId = groupRef.key;
+
+            // Generate unique invite code
+            let inviteCode;
+            let attempts = 0;
+            while (attempts < 10) {
+                inviteCode = generateInviteCode();
+                const existing = await db.ref(`inviteCodes/${inviteCode}`).once('value');
+                if (!existing.exists()) break;
+                attempts++;
+            }
+
+            const groupData = {
+                name: groupName,
+                ownerId: currentUser.uid,
+                inviteCode: inviteCode,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                members: {
+                    [currentUser.uid]: {
+                        displayName: userProfile.displayName,
+                        joinedAt: firebase.database.ServerValue.TIMESTAMP
+                    }
+                }
+            };
+
+            const updates = {};
+            updates[`groups/${groupId}`] = groupData;
+            updates[`inviteCodes/${inviteCode}`] = groupId;
+            updates[`users/${currentUser.uid}/groups/${groupId}`] = true;
+
+            await db.ref().update(updates);
+            await loadUserGroups();
+
+            return { groupId, inviteCode };
+        }
+
+        async function joinGroup(inviteCode) {
+            if (!currentUser || !userProfile) throw new Error('Please set your name first');
+
+            const codeUpper = inviteCode.toUpperCase().trim();
+            const snapshot = await db.ref(`inviteCodes/${codeUpper}`).once('value');
+
+            if (!snapshot.exists()) {
+                throw new Error('Invalid invite code');
+            }
+
+            const groupId = snapshot.val();
+
+            // Check if already a member
+            const memberCheck = await db.ref(`groups/${groupId}/members/${currentUser.uid}`).once('value');
+            if (memberCheck.exists()) {
+                throw new Error('You are already a member of this group');
+            }
+
+            const updates = {};
+            updates[`groups/${groupId}/members/${currentUser.uid}`] = {
+                displayName: userProfile.displayName,
+                joinedAt: firebase.database.ServerValue.TIMESTAMP
+            };
+            updates[`users/${currentUser.uid}/groups/${groupId}`] = true;
+
+            await db.ref().update(updates);
+            await loadUserGroups();
+
+            return groupId;
+        }
+
+        async function leaveGroup(groupId) {
+            if (!currentUser) return;
+
+            const group = userGroups.find(g => g.id === groupId);
+            if (!group) return;
+
+            // If owner, delete the group
+            if (group.ownerId === currentUser.uid) {
+                await deleteGroup(groupId);
+                return;
+            }
+
+            const updates = {};
+            updates[`groups/${groupId}/members/${currentUser.uid}`] = null;
+            updates[`users/${currentUser.uid}/groups/${groupId}`] = null;
+
+            await db.ref().update(updates);
+
+            if (currentGroupId === groupId) {
+                switchToPersonal();
+            }
+
+            await loadUserGroups();
+        }
+
+        async function deleteGroup(groupId) {
+            if (!currentUser) return;
+
+            const group = userGroups.find(g => g.id === groupId);
+            if (!group || group.ownerId !== currentUser.uid) return;
+
+            const updates = {};
+            updates[`groups/${groupId}`] = null;
+            updates[`inviteCodes/${group.inviteCode}`] = null;
+
+            // Remove group from all members
+            for (const memberId of Object.keys(group.members || {})) {
+                updates[`users/${memberId}/groups/${groupId}`] = null;
+            }
+
+            await db.ref().update(updates);
+
+            if (currentGroupId === groupId) {
+                switchToPersonal();
+            }
+
+            await loadUserGroups();
+        }
+
+        // ============================================
+        // VIEW SWITCHING
+        // ============================================
+        function switchToPersonal() {
+            viewMode = 'personal';
+            currentGroupId = null;
+            currentGroup = null;
+            viewingUserId = currentUser ? currentUser.uid : null;
+
+            groupStatsBar.classList.remove('active');
+            updateDropdownActiveState();
+            cacheKey = null; // Force reload
+            renderCalendar();
+        }
+
+        async function switchToGroup(groupId) {
+            const group = userGroups.find(g => g.id === groupId);
+            if (!group) return;
+
+            viewMode = 'group';
+            currentGroupId = groupId;
+            currentGroup = group;
+            viewingUserId = currentUser.uid;
+
+            document.getElementById('currentGroupName').textContent = group.name;
+            groupStatsBar.classList.add('active');
+
+            updateMemberSelector();
+            updateDropdownActiveState();
+            closeUserDropdown();
+
+            cacheKey = null; // Force reload
+            await renderCalendar();
+            await updateGroupStats();
+        }
+
+        function updateMemberSelector() {
+            const selector = document.getElementById('memberSelector');
+            selector.innerHTML = '<option value="' + currentUser.uid + '">My Calendar</option>';
+
+            if (currentGroup && currentGroup.members) {
+                for (const [memberId, member] of Object.entries(currentGroup.members)) {
+                    if (memberId !== currentUser.uid) {
+                        const option = document.createElement('option');
+                        option.value = memberId;
+                        option.textContent = member.displayName;
+                        selector.appendChild(option);
+                    }
+                }
+            }
+        }
+
+        function updateDropdownActiveState() {
+            document.querySelectorAll('#userDropdown .dropdown-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.action === 'personal' && viewMode === 'personal') {
+                    item.classList.add('active');
+                }
+                if (item.dataset.groupId === currentGroupId) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        async function updateGroupStats() {
+            if (!currentGroup) return;
+
+            const yearMonth = `${currentYear}-${currentMonth + 1}`;
+            let groupTotalStars = 0;
+            let groupTotalRatings = 0;
+
+            for (const memberId of Object.keys(currentGroup.members || {})) {
+                const ratingsSnapshot = await db.ref(`ratings/${memberId}/${yearMonth}`).once('value');
+                const ratings = ratingsSnapshot.val() || {};
+
+                for (const day in ratings) {
+                    groupTotalStars += ratings[day];
+                    groupTotalRatings++;
+                }
+            }
+
+            const memberCount = Object.keys(currentGroup.members || {}).length;
+            const groupAvg = groupTotalRatings > 0 ? (groupTotalStars / groupTotalRatings).toFixed(1) : '0.0';
+
+            document.getElementById('groupTotalStars').textContent = `${groupTotalStars} ★`;
+            document.getElementById('groupAvgRating').textContent = `${groupAvg} ★`;
+            document.getElementById('groupMemberCount').textContent = memberCount;
+        }
+
+        // ============================================
+        // RENDERING
+        // ============================================
+        function renderStars(count) {
+            return '★'.repeat(count);
+        }
+
+        function updateStats() {
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            let totalStars = 0;
+            let daysWithRating = 0;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const rating = getRating(currentYear, currentMonth, day);
+                if (rating > 0) {
+                    totalStars += rating;
+                    daysWithRating++;
+                }
+            }
+
+            const avgRating = daysWithRating > 0 ? (totalStars / daysWithRating).toFixed(1) : '0.0';
+
+            totalStarsEl.innerHTML = `${totalStars} <span class="star">★</span>`;
+            avgRatingEl.innerHTML = `${avgRating} <span class="star">★</span>`;
+            daysRatedEl.textContent = `${daysWithRating} / ${daysInMonth}`;
+        }
+
+        async function renderCalendar() {
+            const userId = viewingUserId || (currentUser ? currentUser.uid : null);
+            await loadMonthRatings(userId, currentYear, currentMonth);
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const today = new Date();
+
+            monthYearEl.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            daysContainer.innerHTML = '';
+
+            // Empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'day empty';
+                daysContainer.appendChild(emptyDay);
+            }
+
+            // Days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'day';
+
+                // Check if this is today
+                if (currentYear === today.getFullYear() &&
+                    currentMonth === today.getMonth() &&
+                    day === today.getDate()) {
+                    dayEl.classList.add('today');
+                }
+
+                const rating = getRating(currentYear, currentMonth, day);
+
+                dayEl.innerHTML = `
+                    <div class="day-number">${day}</div>
+                    <div class="stars">${renderStars(rating)}</div>
+                `;
+
+                // Only allow clicking if viewing own calendar
+                const canEdit = !viewingUserId || viewingUserId === (currentUser ? currentUser.uid : null);
+                if (canEdit) {
+                    dayEl.addEventListener('click', () => openModal(day));
+                } else {
+                    dayEl.style.cursor = 'default';
+                }
+
+                daysContainer.appendChild(dayEl);
+            }
+
+            // Fill remaining cells to complete the grid
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let i = 0; i < remainingCells; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'day empty';
+                daysContainer.appendChild(emptyDay);
+            }
+
+            updateStats();
+
+            if (viewMode === 'group') {
+                await updateGroupStats();
+            }
+        }
+
+        function openModal(day) {
+            selectedDate = day;
+            selectedRating = getRating(currentYear, currentMonth, day);
+
+            modalDate.textContent = `${monthNames[currentMonth]} ${day}, ${currentYear}`;
+            updateStarButtons();
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            selectedDate = null;
+            selectedRating = 0;
+        }
+
+        function updateStarButtons() {
+            starButtons.forEach((btn, index) => {
+                if (index < selectedRating) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // ============================================
+        // USER DROPDOWN
+        // ============================================
+        function toggleUserDropdown() {
+            userDropdown.classList.toggle('active');
+        }
+
+        function closeUserDropdown() {
+            userDropdown.classList.remove('active');
+        }
+
+        // ============================================
+        // GROUP SETTINGS MODAL
+        // ============================================
+        function showGroupSettings() {
+            if (!currentGroup) return;
+
+            document.getElementById('settingsGroupName').textContent = currentGroup.name;
+            document.getElementById('settingsInviteCode').textContent = currentGroup.inviteCode;
+
+            const memberList = document.getElementById('settingsMemberList');
+            memberList.innerHTML = '';
+
+            for (const [memberId, member] of Object.entries(currentGroup.members || {})) {
+                const item = document.createElement('div');
+                item.className = 'member-item';
+
+                const isOwner = memberId === currentGroup.ownerId;
+                const isMe = memberId === currentUser.uid;
+
+                item.innerHTML = `
+                    <span>
+                        <span class="member-name">${member.displayName}</span>
+                        ${isOwner ? '<span class="member-badge">Owner</span>' : ''}
+                        ${isMe ? '<span class="member-badge" style="background: #888;">You</span>' : ''}
+                    </span>
+                `;
+
+                memberList.appendChild(item);
+            }
+
+            // Update leave/delete button
+            const leaveBtn = document.getElementById('leaveGroupBtn');
+            if (currentGroup.ownerId === currentUser.uid) {
+                leaveBtn.textContent = 'Delete Group';
+            } else {
+                leaveBtn.textContent = 'Leave Group';
+            }
+
+            document.getElementById('groupSettingsModalOverlay').classList.add('active');
+        }
+
+        function hideGroupSettings() {
+            document.getElementById('groupSettingsModalOverlay').classList.remove('active');
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        // Navigation
+        document.getElementById('prevMonth').addEventListener('click', async () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            cacheKey = null;
+            await renderCalendar();
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', async () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            cacheKey = null;
+            await renderCalendar();
+        });
+
+        // Rating modal
+        starButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedRating = parseInt(btn.dataset.rating);
+                updateStarButtons();
+            });
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            await saveRating(currentYear, currentMonth, selectedDate, selectedRating);
+            await renderCalendar();
+            closeModal();
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            selectedRating = 0;
+            updateStarButtons();
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        // User menu
+        document.getElementById('userMenuBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleUserDropdown();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                closeUserDropdown();
+            }
+        });
+
+        document.querySelector('[data-action="personal"]').addEventListener('click', () => {
+            switchToPersonal();
+            closeUserDropdown();
+        });
+
+        document.querySelector('[data-action="create-group"]').addEventListener('click', () => {
+            if (!firebaseInitialized) {
+                alert('Please configure Firebase to use group features.');
+                return;
+            }
+            if (!userProfile) {
+                showNameModal();
+                return;
+            }
+            closeUserDropdown();
+            document.getElementById('groupNameInput').value = '';
+            hideError('createGroupError');
+            document.getElementById('createGroupModalOverlay').classList.add('active');
+            document.getElementById('groupNameInput').focus();
+        });
+
+        document.querySelector('[data-action="join-group"]').addEventListener('click', () => {
+            if (!firebaseInitialized) {
+                alert('Please configure Firebase to use group features.');
+                return;
+            }
+            if (!userProfile) {
+                showNameModal();
+                return;
+            }
+            closeUserDropdown();
+            document.getElementById('inviteCodeInput').value = '';
+            hideError('joinGroupError');
+            document.getElementById('joinGroupModalOverlay').classList.add('active');
+            document.getElementById('inviteCodeInput').focus();
+        });
+
+        // Display name modal
+        document.getElementById('saveNameBtn').addEventListener('click', async () => {
+            const name = document.getElementById('displayNameInput').value.trim();
+            if (name.length < 1) return;
+
+            await saveDisplayName(name);
+            hideNameModal();
+        });
+
+        document.getElementById('displayNameInput').addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const name = document.getElementById('displayNameInput').value.trim();
+                if (name.length < 1) return;
+                await saveDisplayName(name);
+                hideNameModal();
+            }
+        });
+
+        // Create group modal
+        document.getElementById('createGroupBtn').addEventListener('click', async () => {
+            const name = document.getElementById('groupNameInput').value.trim();
+            if (name.length < 1) {
+                showError('createGroupError', 'Please enter a group name');
+                return;
+            }
+
+            try {
+                const result = await createGroup(name);
+                document.getElementById('createGroupModalOverlay').classList.remove('active');
+                document.getElementById('newInviteCode').textContent = result.inviteCode;
+                document.getElementById('groupCreatedModalOverlay').classList.add('active');
+            } catch (e) {
+                showError('createGroupError', e.message);
+            }
+        });
+
+        document.getElementById('cancelCreateGroupBtn').addEventListener('click', () => {
+            document.getElementById('createGroupModalOverlay').classList.remove('active');
+        });
+
+        document.getElementById('createGroupModalOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'createGroupModalOverlay') {
+                document.getElementById('createGroupModalOverlay').classList.remove('active');
+            }
+        });
+
+        // Group created modal
+        document.getElementById('copyNewCodeBtn').addEventListener('click', async () => {
+            const code = document.getElementById('newInviteCode').textContent;
+            const success = await copyToClipboard(code);
+            document.getElementById('copyNewCodeBtn').textContent = success ? 'Copied!' : 'Copy Code';
+            setTimeout(() => {
+                document.getElementById('copyNewCodeBtn').textContent = 'Copy Code';
+            }, 2000);
+        });
+
+        document.getElementById('doneCreateBtn').addEventListener('click', () => {
+            document.getElementById('groupCreatedModalOverlay').classList.remove('active');
+        });
+
+        // Join group modal
+        document.getElementById('joinGroupBtn').addEventListener('click', async () => {
+            const code = document.getElementById('inviteCodeInput').value.trim();
+            if (code.length < 1) {
+                showError('joinGroupError', 'Please enter an invite code');
+                return;
+            }
+
+            try {
+                const groupId = await joinGroup(code);
+                document.getElementById('joinGroupModalOverlay').classList.remove('active');
+                await switchToGroup(groupId);
+            } catch (e) {
+                showError('joinGroupError', e.message);
+            }
+        });
+
+        document.getElementById('cancelJoinGroupBtn').addEventListener('click', () => {
+            document.getElementById('joinGroupModalOverlay').classList.remove('active');
+        });
+
+        document.getElementById('joinGroupModalOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'joinGroupModalOverlay') {
+                document.getElementById('joinGroupModalOverlay').classList.remove('active');
+            }
+        });
+
+        // Group settings
+        document.getElementById('groupSettingsBtn').addEventListener('click', showGroupSettings);
+
+        document.getElementById('closeSettingsBtn').addEventListener('click', hideGroupSettings);
+
+        document.getElementById('copySettingsCodeBtn').addEventListener('click', async () => {
+            const code = document.getElementById('settingsInviteCode').textContent;
+            const success = await copyToClipboard(code);
+            document.getElementById('copySettingsCodeBtn').textContent = success ? 'Copied!' : 'Copy Code';
+            setTimeout(() => {
+                document.getElementById('copySettingsCodeBtn').textContent = 'Copy Code';
+            }, 2000);
+        });
+
+        document.getElementById('leaveGroupBtn').addEventListener('click', async () => {
+            if (!currentGroup) return;
+
+            const isOwner = currentGroup.ownerId === currentUser.uid;
+            const message = isOwner
+                ? 'Are you sure you want to delete this group? This cannot be undone.'
+                : 'Are you sure you want to leave this group?';
+
+            if (confirm(message)) {
+                await leaveGroup(currentGroupId);
+                hideGroupSettings();
+            }
+        });
+
+        document.getElementById('groupSettingsModalOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'groupSettingsModalOverlay') {
+                hideGroupSettings();
+            }
+        });
+
+        // Member selector
+        document.getElementById('memberSelector').addEventListener('change', async (e) => {
+            viewingUserId = e.target.value;
+            cacheKey = null;
+            await renderCalendar();
+        });
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        async function init() {
+            showLoading();
+            await initAuth();
+            initConnectionMonitor();
+        }
+
+        init();
+    </script>
+</body>
+</html>

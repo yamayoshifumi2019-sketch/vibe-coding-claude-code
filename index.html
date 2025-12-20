@@ -1,499 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Calendar</title>
+    <title>App Collection</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
-        html, body {
-            height: 100%;
-        }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-        }
-
-        .calendar-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            overflow: hidden;
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 24px 40px;
-            background: #4a90a4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
             color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
-
-        .header-left {
-            display: flex;
-            align-items: center;
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
         }
-
-        .calendar-header h2 {
-            font-weight: 500;
-            font-size: 36px;
-        }
-
-        .nav-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 24px;
-            transition: background 0.2s;
-        }
-
-        .nav-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .stats {
-            display: flex;
-            gap: 32px;
-            align-items: center;
-        }
-
-        .stat-box {
-            background: rgba(255,255,255,0.15);
-            padding: 12px 24px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 13px;
-            opacity: 0.9;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .stat-value .star {
-            color: #ffc107;
-        }
-
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            background: #f8f8f8;
-            border-bottom: 1px solid #eee;
-        }
-
-        .weekday {
-            padding: 20px;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 600;
-            color: #666;
-            text-transform: uppercase;
-        }
-
-        .days {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            grid-template-rows: repeat(6, 1fr);
-        }
-
-        .day {
-            padding: 16px;
-            border: 1px solid #eee;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .day:hover {
-            background: #f0f7ff;
-        }
-
-        .day.empty {
-            background: #fafafa;
-            cursor: default;
-        }
-
-        .day.empty:hover {
-            background: #fafafa;
-        }
-
-        .day.today {
-            background: #e8f4fd;
-            border-color: #4a90a4;
-            border-width: 2px;
-        }
-
-        .day-number {
-            font-size: 28px;
-            font-weight: 500;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .day.today .day-number {
-            color: #4a90a4;
-            font-weight: 700;
-        }
-
-        .stars {
-            font-size: 24px;
-            color: #ffc107;
-            letter-spacing: 3px;
-        }
-
-        /* Rating Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
+        .app-card {
             background: white;
-            padding: 40px 50px;
             border-radius: 16px;
+            padding: 30px 20px;
             text-align: center;
-            min-width: 420px;
-        }
-
-        .modal h3 {
-            margin-bottom: 28px;
+            text-decoration: none;
             color: #333;
-            font-weight: 500;
-            font-size: 26px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-
-        .star-rating {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 32px;
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
         }
-
-        .star-btn {
-            background: none;
-            border: none;
-            font-size: 52px;
-            cursor: pointer;
-            color: #ddd;
-            transition: color 0.2s, transform 0.1s;
+        .app-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
         }
-
-        .star-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .star-btn.active {
-            color: #ffc107;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 14px 32px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: opacity 0.2s;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .btn-primary {
-            background: #4a90a4;
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #eee;
-            color: #666;
-        }
-
-        .btn-clear {
-            background: #ff6b6b;
-            color: white;
+        .app-name {
+            font-size: 1.2rem;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <div class="header-left">
-                <button class="nav-btn" id="prevMonth">&lt;</button>
-                <h2 id="monthYear"></h2>
-                <button class="nav-btn" id="nextMonth">&gt;</button>
-            </div>
-            <div class="stats">
-                <div class="stat-box">
-                    <div class="stat-label">Total Stars</div>
-                    <div class="stat-value" id="totalStars">0 <span class="star">★</span></div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Average Rating</div>
-                    <div class="stat-value" id="avgRating">0.0 <span class="star">★</span></div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Days Rated</div>
-                    <div class="stat-value" id="daysRated">0 / 0</div>
-                </div>
-            </div>
-        </div>
-        <div class="weekdays">
-            <div class="weekday">Sunday</div>
-            <div class="weekday">Monday</div>
-            <div class="weekday">Tuesday</div>
-            <div class="weekday">Wednesday</div>
-            <div class="weekday">Thursday</div>
-            <div class="weekday">Friday</div>
-            <div class="weekday">Saturday</div>
-        </div>
-        <div class="days" id="daysContainer"></div>
-    </div>
-
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h3 id="modalDate"></h3>
-            <div class="star-rating" id="starRating">
-                <button class="star-btn" data-rating="1">★</button>
-                <button class="star-btn" data-rating="2">★</button>
-                <button class="star-btn" data-rating="3">★</button>
-                <button class="star-btn" data-rating="4">★</button>
-                <button class="star-btn" data-rating="5">★</button>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-clear" id="clearBtn">Clear</button>
-                <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
-                <button class="btn btn-primary" id="saveBtn">Save</button>
-            </div>
+    <div class="container">
+        <h1>My Apps</h1>
+        <div class="app-grid">
+            <a href="calendar/" class="app-card">
+                <div class="app-icon">📅</div>
+                <div class="app-name">Calendar</div>
+            </a>
+            <a href="news-quiz/" class="app-card">
+                <div class="app-icon">📰</div>
+                <div class="app-name">News Quiz</div>
+            </a>
+            <a href="tetris/" class="app-card">
+                <div class="app-icon">🎮</div>
+                <div class="app-name">Tetris</div>
+            </a>
+            <a href="todo/" class="app-card">
+                <div class="app-icon">✅</div>
+                <div class="app-name">Todo</div>
+            </a>
+            <a href="english-vocab-app/" class="app-card">
+                <div class="app-icon">📚</div>
+                <div class="app-name">English Vocab</div>
+            </a>
         </div>
     </div>
-
-    <script>
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                           'July', 'August', 'September', 'October', 'November', 'December'];
-
-        let currentDate = new Date();
-        let currentYear = currentDate.getFullYear();
-        let currentMonth = currentDate.getMonth();
-        let selectedDate = null;
-        let selectedRating = 0;
-
-        const daysContainer = document.getElementById('daysContainer');
-        const monthYearEl = document.getElementById('monthYear');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalDate = document.getElementById('modalDate');
-        const starButtons = document.querySelectorAll('.star-btn');
-        const totalStarsEl = document.getElementById('totalStars');
-        const avgRatingEl = document.getElementById('avgRating');
-        const daysRatedEl = document.getElementById('daysRated');
-
-        function getStorageKey(year, month, day) {
-            return `calendar-${year}-${month + 1}-${day}`;
-        }
-
-        function getRating(year, month, day) {
-            const key = getStorageKey(year, month, day);
-            return parseInt(localStorage.getItem(key)) || 0;
-        }
-
-        function saveRating(year, month, day, rating) {
-            const key = getStorageKey(year, month, day);
-            if (rating > 0) {
-                localStorage.setItem(key, rating);
-            } else {
-                localStorage.removeItem(key);
-            }
-        }
-
-        function renderStars(count) {
-            return '★'.repeat(count);
-        }
-
-        function updateStats() {
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            let totalStars = 0;
-            let daysWithRating = 0;
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const rating = getRating(currentYear, currentMonth, day);
-                if (rating > 0) {
-                    totalStars += rating;
-                    daysWithRating++;
-                }
-            }
-
-            const avgRating = daysWithRating > 0 ? (totalStars / daysWithRating).toFixed(1) : '0.0';
-
-            totalStarsEl.innerHTML = `${totalStars} <span class="star">★</span>`;
-            avgRatingEl.innerHTML = `${avgRating} <span class="star">★</span>`;
-            daysRatedEl.textContent = `${daysWithRating} / ${daysInMonth}`;
-        }
-
-        function renderCalendar() {
-            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const today = new Date();
-
-            monthYearEl.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-            daysContainer.innerHTML = '';
-
-            // Empty cells for days before the first day of the month
-            for (let i = 0; i < firstDay; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'day empty';
-                daysContainer.appendChild(emptyDay);
-            }
-
-            // Days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayEl = document.createElement('div');
-                dayEl.className = 'day';
-
-                // Check if this is today
-                if (currentYear === today.getFullYear() &&
-                    currentMonth === today.getMonth() &&
-                    day === today.getDate()) {
-                    dayEl.classList.add('today');
-                }
-
-                const rating = getRating(currentYear, currentMonth, day);
-
-                dayEl.innerHTML = `
-                    <div class="day-number">${day}</div>
-                    <div class="stars">${renderStars(rating)}</div>
-                `;
-
-                dayEl.addEventListener('click', () => openModal(day));
-                daysContainer.appendChild(dayEl);
-            }
-
-            // Fill remaining cells to complete the grid
-            const totalCells = firstDay + daysInMonth;
-            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-            for (let i = 0; i < remainingCells; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'day empty';
-                daysContainer.appendChild(emptyDay);
-            }
-
-            updateStats();
-        }
-
-        function openModal(day) {
-            selectedDate = day;
-            selectedRating = getRating(currentYear, currentMonth, day);
-
-            modalDate.textContent = `${monthNames[currentMonth]} ${day}, ${currentYear}`;
-            updateStarButtons();
-            modalOverlay.classList.add('active');
-        }
-
-        function closeModal() {
-            modalOverlay.classList.remove('active');
-            selectedDate = null;
-            selectedRating = 0;
-        }
-
-        function updateStarButtons() {
-            starButtons.forEach((btn, index) => {
-                if (index < selectedRating) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        }
-
-        // Event Listeners
-        document.getElementById('prevMonth').addEventListener('click', () => {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            renderCalendar();
-        });
-
-        document.getElementById('nextMonth').addEventListener('click', () => {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            renderCalendar();
-        });
-
-        starButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                selectedRating = parseInt(btn.dataset.rating);
-                updateStarButtons();
-            });
-        });
-
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            saveRating(currentYear, currentMonth, selectedDate, selectedRating);
-            renderCalendar();
-            closeModal();
-        });
-
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            selectedRating = 0;
-            updateStarButtons();
-        });
-
-        document.getElementById('cancelBtn').addEventListener('click', closeModal);
-
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                closeModal();
-            }
-        });
-
-        // Initialize
-        renderCalendar();
-    </script>
 </body>
 </html>
