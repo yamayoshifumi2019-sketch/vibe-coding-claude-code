@@ -1,6 +1,5 @@
 # English Vocabulary Learning App
-
-This is the project that I started as my first launch. I recently got interested in programming, and I now am having fun at vibe coding.
+Let's learn English by English ! This is the fastest way to master it !
 
 ## About
 
